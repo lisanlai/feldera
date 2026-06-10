@@ -799,6 +799,16 @@ impl Controller {
         self.inner.num_api_connections()
     }
 
+    /// Returns `true` if the pipeline currently has no active API connections.
+    ///
+    /// A pipeline with zero API connections is not servicing any HTTP ingress,
+    /// egress, or ad-hoc query clients. Combined with an empty input buffer,
+    /// this is the signal the runner uses to consider a pipeline idle and
+    /// eligible for automatic suspension.
+    pub fn is_idle(&self) -> bool {
+        self.num_api_connections() == 0
+    }
+
     /// Force the circuit to perform a step even if all of its
     /// input buffers are empty or nearly empty.
     pub fn request_step(&self) {

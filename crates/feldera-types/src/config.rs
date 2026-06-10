@@ -887,6 +887,18 @@ pub struct RuntimeConfig {
     /// It is set to 1 second (1,000,000 microseconds) by default.
     pub clock_resolution_usecs: Option<u64>,
 
+    /// Maximum time, in microseconds, that the pipeline will spend executing a
+    /// single step before yielding to process pending control commands
+    /// (pause, checkpoint, suspend).
+    ///
+    /// Long-running steps can delay the pipeline's response to control-plane
+    /// requests. Lowering this value improves control-plane responsiveness at
+    /// the cost of a small amount of per-step scheduling overhead; raising it
+    /// favors steady-state throughput.
+    ///
+    /// If not specified, the pipeline does not bound the duration of a step.
+    pub max_step_latency_usecs: Option<u64>,
+
     /// Optionally, a list of CPU numbers for CPUs to which the pipeline may pin
     /// its worker threads.  Specify at least twice as many CPU numbers as
     /// workers.  CPUs are generally numbered starting from 0.  The pipeline
@@ -1099,6 +1111,7 @@ impl Default for RuntimeConfig {
             max_buffering_delay_usecs: 0,
             resources: ResourceConfig::default(),
             clock_resolution_usecs: { Some(DEFAULT_CLOCK_RESOLUTION_USECS) },
+            max_step_latency_usecs: None,
             pin_cpus: Vec::new(),
             provisioning_timeout_secs: None,
             max_parallel_connector_init: None,
