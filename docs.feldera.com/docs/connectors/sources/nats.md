@@ -1,3 +1,5 @@
+
+
 # NATS input connector
 
 Feldera can consume a stream of changes to a SQL table from NATS JetStream
@@ -15,6 +17,7 @@ NATS support is still experimental, and it may be substantially modified in the 
 ## How it works
 
 The NATS input connector uses JetStream's **ordered pull consumer**, which provides:
+
 - **Strict ordering**: Messages delivered in exact stream order without gaps.
 - **Automatic recovery**: On gap detection, heartbeat loss, or deletion, the consumer automatically recreates itself and resumes from the last processed position.
 - **Retry loop with health checks**: On transient startup/runtime failures, the connector enters retry mode and periodically attempts to reconnect.
@@ -30,16 +33,16 @@ The connector configuration consists of three main sections:
 |------------------------|--------|----------|-------------|
 | `server_url`           | string | Yes      | NATS server URL (e.g., `nats://localhost:4222`) |
 | `auth`                 | object | No       | Authentication configuration (see [Authentication](#authentication)) |
-| `connection_timeout_secs` | integer | No    | Connection timeout in seconds. How long to wait when establishing the initial connection to the NATS server. Default: 10 |
-| `request_timeout_secs` | integer | No       | Request timeout in seconds. How long to wait for responses to requests. Default: 10 |
+| `connection_timeout_secs` | integer | No    | Connection timeout in seconds. How long to wait when establishing the initial connection to the NATS server. Default: 15 |
+| `request_timeout_secs` | integer | No       | Request timeout in seconds. How long to wait for responses to requests. Default: 20 |
 
 ### Stream Configuration
 
 | Property      | Type   | Required | Description |
 |--------------|--------|----------|-------------|
 | `stream_name` | string | Yes      | The name of the NATS JetStream stream to consume from |
-| `inactivity_timeout_secs` | integer | No | Maximum idle time while waiting for the next message before running a stream/server health check. Must be at least 1. Default: 60 |
-| `retry_interval_secs` | integer | No | Delay between automatic retry attempts while the connector is in retry mode. Must be at least 1. Default: 5 |
+| `inactivity_timeout_secs` | integer | No | Maximum idle time while waiting for the next message before running a stream/server health check. Must be at least 1. Default: 90 |
+| `retry_interval_secs` | integer | No | Delay between automatic retry attempts while the connector is in retry mode. Must be at least 1. Default: 10 |
 
 ### Consumer Configuration
 
@@ -146,6 +149,7 @@ For production environments, it is strongly recommended to use [secret reference
 Before using the NATS input connector, you need a NATS server with JetStream enabled and a stream created.
 
 ### Quickstart
+
 The quickest way to start experimenting with Feldera and NATS is to use Docker Compose:
 
 ```bash
@@ -162,6 +166,7 @@ docker compose exec nats-cli sh
 You can then easily publish messages to the NATS server using the `nats` CLI.
 
 ### Creating a Stream
+
 Once installed, create a stream and publish test messages:
 
 ```bash
@@ -344,12 +349,13 @@ CREATE MATERIALIZED VIEW summary as
     FROM raw_text
     GROUP BY text_length
 ```
+
 ## Additional resources
 
 For more information, see:
 
-* [Top-level connector documentation](/connectors/)
-* [Fault tolerance](/pipelines/fault-tolerance)
-* Data formats such as [JSON](/formats/json) and [CSV](/formats/csv)
-* [NATS JetStream documentation](https://docs.nats.io/nats-concepts/jetstream)
-* [NATS Ordered Consumer documentation](https://docs.nats.io/using-nats/developer/develop_jetstream/consumers#orderedconsumer)
+- [Top-level connector documentation](/connectors/)
+- [Fault tolerance](/pipelines/fault-tolerance)
+- Data formats such as [JSON](/formats/json) and [CSV](/formats/csv)
+- [NATS JetStream documentation](https://docs.nats.io/nats-concepts/jetstream)
+- [NATS Ordered Consumer documentation](https://docs.nats.io/using-nats/developer/develop_jetstream/consumers#orderedconsumer)
