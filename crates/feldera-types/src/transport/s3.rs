@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 fn default_max_concurrent_fetches() -> u32 {
-    8
+    10
 }
 
 fn default_max_retries() -> u32 {

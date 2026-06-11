@@ -192,7 +192,7 @@ impl KafkaInputConfig {
     // and system resources.
     pub fn poller_threads(&self) -> usize {
         let max_threads = available_parallelism().map_or(16, NonZeroUsize::get);
-        self.poller_threads.unwrap_or(3).clamp(1, max_threads)
+        self.poller_threads.unwrap_or(4).clamp(1, max_threads)
     }
 
     pub fn metadata_requested(&self) -> bool {

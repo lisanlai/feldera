@@ -95,7 +95,7 @@ static DELTA_READER_SEMAPHORE: std::sync::LazyLock<Semaphore> =
 /// initial token count for `DELTA_READER_SEMAPHORE` and as the fallback
 /// for DataFusion's `target_partitions` when neither
 /// `DELTA_DF_TARGET_PARTITIONS` nor `max_concurrent_readers` is set.
-const DEFAULT_MAX_CONCURRENT_READERS: usize = 6;
+const DEFAULT_MAX_CONCURRENT_READERS: usize = 8;
 
 /// Configured `max_concurrent_readers` value (0 = not set by any connector).
 /// Used to detect conflicting values of `max_concurrent_readers` during parallel
