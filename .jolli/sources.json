@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "sources": {
+    "lisanlai/feldera": {
+      "type": "git",
+      "path": "/home/user/workspace/feldera/main"
+    }
+  }
+}
