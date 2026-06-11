@@ -44,7 +44,7 @@ pub use dev_tweaks::DevTweaks;
 const DEFAULT_MAX_PARALLEL_CONNECTOR_INIT: u64 = 10;
 
 /// Default value of `ConnectorConfig::max_queued_records`.
-pub const DEFAULT_MAX_QUEUED_RECORDS: u64 = 1_000_000;
+pub const DEFAULT_MAX_QUEUED_RECORDS: u64 = 2_000_000;
 
 pub const DEFAULT_MAX_WORKER_BATCH_SIZE: u64 = 10_000;
 

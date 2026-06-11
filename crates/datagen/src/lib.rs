@@ -765,7 +765,7 @@ impl InputGenerator {
             } = work;
             let plan = &config.plan[plan_idx];
             let batch_size: usize = min(
-                min(plan.rate.unwrap_or(u32::MAX) as usize, 10_000),
+                min(plan.rate.unwrap_or(u32::MAX) as usize, 20_000),
                 max_batch_size,
             );
             let schema = schema.clone();
@@ -973,7 +973,7 @@ fn assign_work(
     for (plan_idx, (set, plan)) in unassigned.iter_mut().zip(config.plan.iter()).enumerate() {
         if let Some(rows) = set.as_ref().iter().next().cloned() {
             let (first, last) = rows.into_inner();
-            let batch_size: usize = min(plan.rate.unwrap_or(u32::MAX) as usize, 10_000);
+            let batch_size: usize = min(plan.rate.unwrap_or(u32::MAX) as usize, 20_000);
             let per_thread_chunk: usize = plan.worker_chunk_size.unwrap_or(batch_size);
             let n = per_thread_chunk.min(last - first + 1);
             let batch = Batch {
