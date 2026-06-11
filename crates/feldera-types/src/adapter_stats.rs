@@ -78,6 +78,24 @@ pub struct PipelineStatsErrorsResponse {
     pub outputs: Vec<EndpointErrorStats<OutputEndpointErrorMetrics>>,
 }
 
+impl PipelineStatsErrorsResponse {
+    /// Returns the total number of errors across all input and output
+    /// endpoints, summing transport, parse, and encode errors.
+    pub fn total_errors(&self) -> u64 {
+        let input_errors: u64 = self
+            .inputs
+            .iter()
+            .map(|e| e.metrics.num_transport_errors + e.metrics.num_parse_errors)
+            .sum();
+        let output_errors: u64 = self
+            .outputs
+            .iter()
+            .map(|e| e.metrics.num_transport_errors + e.metrics.num_encode_errors)
+            .sum();
+        input_errors + output_errors
+    }
+}
+
 // OpenAPI schema definitions for controller statistics
 // These match the serialized JSON structure from the adapters crate
 

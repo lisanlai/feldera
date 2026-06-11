@@ -63,6 +63,19 @@ pub enum RuntimeStatus {
     Suspended,
 }
 
+impl RuntimeStatus {
+    /// Returns `true` if this status represents a steady state, i.e., one the
+    /// pipeline remains in until an external command or failure moves it
+    /// elsewhere, as opposed to a transitional state such as `Initializing`,
+    /// `Bootstrapping`, or `Replaying` that the pipeline exits on its own.
+    pub fn is_steady_state(&self) -> bool {
+        matches!(
+            self,
+            Self::Standby | Self::Paused | Self::Running | Self::Suspended
+        )
+    }
+}
+
 impl From<RuntimeDesiredStatus> for RuntimeStatus {
     fn from(value: RuntimeDesiredStatus) -> Self {
         match value {
