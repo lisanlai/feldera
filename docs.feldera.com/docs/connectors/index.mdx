@@ -1,3 +1,5 @@
+
+
 # Connectors: connect to data sources and sinks
 
 A Feldera pipeline can process data from multiple heterogeneous sources and
@@ -58,12 +60,12 @@ appear before the `AS` clause to resolve any parsing ambiguities.
 
 A connector specification consists of three parts:
 
-* [Generic attributes](#generic-attributes) common to all connectors, such as backpressure thresholds.
-* Transport specification (`transport`) for either [input](/connectors/sources/) or [output](/connectors/sinks/)
+- [Generic attributes](#generic-attributes) common to all connectors, such as backpressure thresholds.
+- Transport specification (`transport`) for either [input](/connectors/sources/) or [output](/connectors/sinks/)
   defines the data transport to be used by the connector.
   Example transports include [Kafka](/connectors/sources/kafka),
   [URL](/connectors/sources/http-get), [Delta Lake](/connectors/sources/delta), etc.
-* [Data format specification](/formats) (`format`), which defines the data format for the connector.
+- [Data format specification](/formats) (`format`), which defines the data format for the connector.
   Example data formats include [CSV](/formats/csv), [JSON](/formats/json), [Parquet](/formats/parquet), or
   Avro.
 
@@ -124,13 +126,13 @@ The following attributes are common to all connectors:
   These values are approximate: the pipeline pauses input or execution
   soon after they are exceeded, but not always instantly.
 
-  By default, `max_queued_records` is 1,000,000.  If
+  By default, `max_queued_records` is 2,000,000.  If
   `max_queued_bytes` is unspecified, then it defaults to `1000 *
   max_queued_records`.
 
 * <a name="max_batch_size">`max_batch_size`</a> - Maximum number of records from this connector to process in a single batch.
 
-  When set, this caps how many records are taken from the connector’s input
+  When set, this caps how many records are taken from the connector's input
   buffer and pushed through the circuit at once.
 
   This is typically configured lower than `max_queued_records` to allow the
@@ -144,7 +146,7 @@ The following attributes are common to all connectors:
 * <a name="max_worker_batch_size">`max_worker_batch_size`</a> - Maximum number of records processed per batch, per worker thread.
 
   When `max_batch_size` is not set, this setting is used to cap
-  the number of records that can be taken from the connector’s input
+  the number of records that can be taken from the connector's input
   buffer and pushed through the circuit at once.  The effective batch size is computed as:
   `max_worker_batch_size × workers`.
 
@@ -188,32 +190,32 @@ The output buffer can be setup for each individual output connector as part
 of connector configuration.  The following parameters are used to configure the
 output buffer:
 
-* `enable_output_buffer` - Enable output buffer.
+- `enable_output_buffer` - Enable output buffer.
 
-* `max_output_buffer_time_millis` - Maximum time in milliseconds data is kept
-   in the output buffer.
+- `max_output_buffer_time_millis` - Maximum time in milliseconds data is kept
+  in the output buffer.
 
-   When not specified, data is kept in the buffer indefinitely until one of
-   the other trigger conditions is satisfied.  When this option is
-   set the buffer will be flushed at most every
-   `max_output_buffer_time_millis` milliseconds.
+  When not specified, data is kept in the buffer indefinitely until one of
+  the other trigger conditions is satisfied.  When this option is
+  set the buffer will be flushed at most every
+  `max_output_buffer_time_millis` milliseconds.
 
-   This configuration option requires the `enable_output_buffer` flag
-   to be set.
+  This configuration option requires the `enable_output_buffer` flag
+  to be set.
 
-* `max_output_buffer_size_records` - Maximum number of updates to be kept in
-   the output buffer.
+- `max_output_buffer_size_records` - Maximum number of updates to be kept in
+  the output buffer.
 
-   This parameter bounds the maximal size of the buffer.
-   Note that the size of the buffer is not always equal to the
-   total number of updates output by the pipeline. Updates to the
-   same record can overwrite or cancel previous updates.
+  This parameter bounds the maximal size of the buffer.
+  Note that the size of the buffer is not always equal to the
+  total number of updates output by the pipeline. Updates to the
+  same record can overwrite or cancel previous updates.
 
-   When not specified, the buffer can grow indefinitely until one of
-   the other trigger conditions is satisfied.
+  When not specified, the buffer can grow indefinitely until one of
+  the other trigger conditions is satisfied.
 
-   This configuration option requires the `enable_output_buffer` flag
-   to be set.
+  This configuration option requires the `enable_output_buffer` flag
+  to be set.
 
 :::note
 
@@ -230,12 +232,12 @@ for an example of configuring the output buffer.
 
 For more information, see:
 
-* [Tutorial on using input and output connectors](/tutorials/basics/part3)
-* [Tutorial on using HTTP-based input and output](/tutorials/basics/part2)
-* [Tables and views with uniqueness constraints](/connectors/unique_keys)
-* [Input connector orchestration](/connectors/orchestration)
-* [Synchronous processing with completion tokens](/connectors/completion-tokens)
-* [Configuring connectors with secrets](/connectors/secret-references)
-* [Supported source transports](/connectors/sources)
-* [Supported sinks transports](/connectors/sinks)
-* [End to end example with Kafka using Feldera Python SDK](pathname:///python/examples.html#end-to-end-example-with-kafka-sink)
+- [Tutorial on using input and output connectors](/tutorials/basics/part3)
+- [Tutorial on using HTTP-based input and output](/tutorials/basics/part2)
+- [Tables and views with uniqueness constraints](/connectors/unique_keys)
+- [Input connector orchestration](/connectors/orchestration)
+- [Synchronous processing with completion tokens](/connectors/completion-tokens)
+- [Configuring connectors with secrets](/connectors/secret-references)
+- [Supported source transports](/connectors/sources)
+- [Supported sinks transports](/connectors/sinks)
+- [End to end example with Kafka using Feldera Python SDK](pathname:///python/examples.html#end-to-end-example-with-kafka-sink)
