@@ -1495,11 +1495,11 @@ impl InputEndpointMetrics {
 // Latency histogram creation functions.
 impl InputEndpointMetrics {
     pub fn processing_latency_histogram() -> SlidingHistogram {
-        SlidingHistogram::new(10_000, Duration::from_secs(600))
+        SlidingHistogram::new(5_000, Duration::from_secs(300))
     }
 
     pub fn completion_latency_histogram() -> SlidingHistogram {
-        SlidingHistogram::new(10_000, Duration::from_secs(600))
+        SlidingHistogram::new(5_000, Duration::from_secs(300))
     }
 }
 
