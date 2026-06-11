@@ -32,13 +32,13 @@ exactly once fault tolerance.
 | `snapshot_filter`           | string |            | <p>Optional snapshot filter.</p><p>This option is only valid when `mode` is set to `snapshot` or `snapshot_and_follow`. When specified, only rows that satisfy the filter condition are included in the snapshot.</p> <p>The condition must be a valid SQL Boolean expression that can be used in  the `where` clause of the `select * from snapshot where ...` query.</p><p>Unlike the `filter` option, which applies to all records retrieved from the table, this filter only applies to rows in the initial snapshot of the table. For instance, it can be used to specify the range of event times to include in the snapshot, e.g.: `ts BETWEEN TIMESTAMP '2005-01-01 00:00:00' AND TIMESTAMP '2010-12-31 23:59:59'`. This option can be used together with the `filter` option. During the initial snapshot, only rows that satisfy both `filter` and `snapshot_filter` are retrieved from the Delta table. When subsequently following changes in the the transaction log (`mode = snapshot_and_follow`), all rows that meet the `filter` condition are ingested, regardless of `snapshot_filter`. </p> |
 | `version`, `start_version`  | integer|            | <p>Optional table version.  When this option is set, the connector finds and opens the specified version of the table. In `snapshot` and `snapshot_and_follow` modes, it retrieves the snapshot of this version of the table.  In `follow`, `snapshot_and_follow`, and `cdc` modes, it follows transaction log records **after** this version.</p><p>Note: at most one of `version` and `datetime` options can be specified.  When neither of the two options is specified, the latest committed version of the table is used.</p> |
 | `datetime`                  | string |            | <p>Optional timestamp for the snapshot in the ISO-8601/RFC-3339 format, e.g., "2024-12-09T16:09:53+00:00". When this option is set, the connector finds and opens the version of the table as of the specified point in time (based on the server time recorded in the transaction log, not the event time encoded in the data).  In `snapshot` and `snapshot_and_follow` modes, it retrieves the snapshot of this version of the table.  In `follow`, `snapshot_and_follow`, and `cdc` modes, it follows transaction log records **after** this version.</p><p> Note: at most one of `version` and `datetime` options can be specified.  When neither of the two options is specified, the latest committed version of the table is used.</p>|
-| `end_version`               | integer|            | <p>Optional final table version.</p><p>Valid only when the connector is configured in `follow`, `snapshot_and_follow`, or `cdc` mode.</p><p>When set, the connector will stop scanning the table’s transaction log after reaching this version or any greater version.</p><p>This bound is inclusive: if the specified version appears in the log, it will be processed before signaling end-of-input.</p>|
+| `end_version`               | integer|            | <p>Optional final table version.</p><p>Valid only when the connector is configured in `follow`, `snapshot_and_follow`, or `cdc` mode.</p><p>When set, the connector will stop scanning the table's transaction log after reaching this version or any greater version.</p><p>This bound is inclusive: if the specified version appears in the log, it will be processed before signaling end-of-input.</p>|
 | `cdc_delete_filer`          | string |            | <p>A predicate that determines whether the record represents a deletion.</p><p>This setting is only valid in the `cdc` mode. It specifies a predicate applied to each row in the Delta table to determine whether the row represents a deletion event. Its value must be a valid Boolean SQL expression that can be used in a query of the form `SELECT * from <table> WHERE <cdc_delete_filter>`.</p>|
 | `cdc_order_by`              | string |            | <p>An expression that determines the ordering of updates in the Delta table.</p><p>This setting is only valid in the `cdc` mode. It specifies a predicate applied to each row in the Delta table to determine the order in which updates in the table should be applied. Its value must be a valid SQL expression that can be used in a query of the form `SELECT * from <table> ORDER BY <cdc_order_by>`.</p>|
-| `num_parsers`               | integer| 4          | The number of parallel parsing tasks the connector uses to process data read from the table. Increasing this value can enhance performance by allowing more concurrent processing. Recommended range: 1–10.|
+| `num_parsers`               | integer| 6          | The number of parallel parsing tasks the connector uses to process data read from the table. Increasing this value can enhance performance by allowing more concurrent processing. Recommended range: 1–10.|
 | `max_retries`               | integer| unlimited retries| <p>Maximum number of retries for failed object store operations.</p><p>Controls how many times the connector retries high-level storage operations, such as reading a Delta log entry or a Parquet file.</p><p>This is in addition to lower-level retries (e.g., individual S3 operation retries governed by storage options like `retry_timeout`). If those retries are exhausted or the failure is otherwise unrecoverable at the storage layer, the connector retries the entire operation.</p><p>Defaults to unlimited retries. Set to 0 to disable retries.</p><p>See [retries and at-least-once delivery](#retries-and-at-least-once-delivery)</p>|
 | `skip_unused_columns` (<b>DEPRECATED</b>) | bool   | false | <p>This property is deprecated. Use the [table-level `skip_unused_columns` property](/sql/grammar#ignoring-unused-columns) instead.</p><p>Don't read unused columns from the Delta table.  When set to `true`, this option instructs the connector to avoid reading columns from the Delta table that are not used in any view definitions. To be skipped, the columns must be either nullable or have default values. This can improve ingestion performance, especially for wide tables.</p><p>Note: The simplest way to exclude unused columns is to omit them from the Feldera SQL table declaration. The connector never reads columns that aren't declared in the SQL schema. Additionally, the SQL compiler emits warnings for declared but unused columns—use these as a guide to optimize your schema.</p>|
-| `max_concurrent_readers`    | integer| 6          | <p>Maximum number of concurrent object store reads performed by all Delta Lake connectors.</p><p>This setting is used to limit the number of concurrent reads of the object store in a pipeline with a large number of Delta Lake connectors. When multiple connectors are simultaneously reading from the object store, this can lead to transport timeouts.</p><p>When enabled, this setting limits the number of concurrent reads across all connectors. This is a global setting that affects all Delta Lake connectors, and not just the connector where it is specified. It should therefore be used at most once in a pipeline.  If multiple connectors specify this setting, they must all use the same value.</p><p>The default value is 6.</p>|
+| `max_concurrent_readers`    | integer| 8          | <p>Maximum number of concurrent object store reads performed by all Delta Lake connectors.</p><p>This setting is used to limit the number of concurrent reads of the object store in a pipeline with a large number of Delta Lake connectors. When multiple connectors are simultaneously reading from the object store, this can lead to transport timeouts.</p><p>When enabled, this setting limits the number of concurrent reads across all connectors. This is a global setting that affects all Delta Lake connectors, and not just the connector where it is specified. It should therefore be used at most once in a pipeline.  If multiple connectors specify this setting, they must all use the same value.</p><p>The default value is 8.</p>|
 
 [*]: Required fields
 
@@ -70,7 +70,7 @@ The following configuration options are supported for Amazon S3 object store. Se
 | `aws_session_token`, `aws_token`, `session_token`, `token`                | `AWS_SESSION_TOKEN`                      | Session token for temporary credentials.                                          |
 | `aws_skip_signature`, `skip_signature`                                    | `AWS_SKIP_SIGNATURE`                     | If enabled, AmazonS3 will not fetch credentials and will not sign requests. This can be useful when interacting with public S3 buckets that deny authorized requests |
 | `aws_imdsv1_fallback`, `imdsv1_fallback`                                  | `AWS_IMDSV1_FALLBACK`                    | Enable automatic fallback to using IMDSv1 if the token endpoint returns a 403 error indicating that IMDSv2 is not supported. |
-| `aws_virtual_hosted_style_request`, `virtual_hosted_style_request`        | `AWS_VIRTUAL_HOSTED_STYLE_REQUEST`       | Configured whether virtual hosted style request has to be used. If `"false"` (default), path style request is used, if `"true"`, virtual hosted style request is used. If the endpoint is provided then it should be consistent with virtual_hosted_style_request. i.e. if virtual_hosted_style_request is set to true then endpoint should have bucket name included.|
+| `aws_virtual_hosted_style_request`, `virtual_hosted_style_request`        | `AWS_VIRTUAL_HOSTED_STYLE_REQUEST`       | Configured whether virtual hosted style request has to be used. If `"false"` (default), path style request is used, if `"true"`, virtual hosted style request is used. If the endpoint is provided then it should be consistent with virtual\_hosted\_style\_request. i.e. if virtual\_hosted\_style\_request is set to true then endpoint should have bucket name included.|
 | `aws_unsigned_payload`, `unsigned_payload`                                | `AWS_UNSIGNED_PAYLOAD`                   | Avoid computing payload checksum when calculating signature.                      |
 | `aws_metadata_endpoint`, `metadata_endpoint`                              | `AWS_METADATA_ENDPOINT`                  | Instance metadata endpoint                                                        |
 | `aws_container_credentials_relative_uri`, `container_credentials_relative_uri` | `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` | Container credentials relative URI when used in ECS                          |
@@ -82,10 +82,12 @@ The following configuration options are supported for Amazon S3 object store. Se
 | `aws_server_side_encryption`                                              | `AWS_SERVER_SIDE_ENCRYPTION`             | Type of encryption to use. If set, must be one of `"AES256"` (SSE-S3), `"aws:kms"` (SSE-KMS), `"aws:kms:dsse"` (DSSE-KMS) or `"sse-c"`. |
 | `aws_sse_kms_key_id`                                                      | `AWS_SSE_KMS_KEY_ID`                     | The KMS key ID to use for server-side encryption. If set, `aws_server_side_encryption` must be "aws:kms" or "aws:kms:dsse".|
 | `aws_sse_bucket_key_enabled`                                              | `AWS_SSE_BUCKET_KEY_ENABLED`             | If set to `"true"`, will use the bucket's default KMS key for server-side encryption. If set to `"false"`, will disable the use of the bucket's default KMS key for server-side encryption.|
-| `aws_sse_customer_key_base64`                                             | `AWS_SSE_CUSTOMER_KEY_BASE64`            | The base64 encoded, 256-bit customer encryption key to use for server-side encryption. If set, ServerSideEncryption must be "sse-c".|
-    </TabItem>
+| `aws_sse_customer_key_base64`                                             | `AWS_SSE_CUSTOMER_KEY_BASE64`            | The base64 encoded, 256-bit customer encryption key to use for server-side encryption. If set, ServerSideEncryption must be "sse-c".| </TabItem>
 
-    <TabItem value="abs" label="Azure Blob Storage">
+```
+<TabItem value="abs" label="Azure Blob Storage">
+```
+
 The following configuration options are supported for Azure Blob Storage object store. See [`object_store` documentation](https://docs.rs/object_store/latest/object_store/azure/enum.AzureConfigKey.html) for additional details.
 
 | Configuration Option                                                      | Environment Variable                     | Description                                                                       |
@@ -109,10 +111,12 @@ The following configuration options are supported for Azure Blob Storage object 
 | `azure_fabric_token_service_url`, `fabric_token_service_url`              | `AZURE_FABRIC_TOKEN_SERVICE_URL`         | Fabric token service url.                                                         |
 | `azure_fabric_workload_host`, `fabric_workload_host`                      | `AZURE_FABRIC_WORKLOAD_HOST`             | Fabric workload host.                                                             |
 | `azure_fabric_session_token`, `fabric_session_token`                      | `AZURE_FABRIC_SESSION_TOKEN`             | Fabric session token.                                                             |
-| `azure_fabric_cluster_identifier`, `fabric_cluster_identifier`            | `AZURE_FABRIC_CLUSTER_IDENTIFIER`        | Fabric cluster identifier.                                                        |
-    </TabItem>
+| `azure_fabric_cluster_identifier`, `fabric_cluster_identifier`            | `AZURE_FABRIC_CLUSTER_IDENTIFIER`        | Fabric cluster identifier.                                                        | </TabItem>
 
-    <TabItem value="gcs" label="Google Cloud Storage">
+```
+<TabItem value="gcs" label="Google Cloud Storage">
+```
+
 The following configuration options are supported for Google Cloud Storage object store. See [`object_store` documentation](https://docs.rs/object_store/latest/object_store/gcp/enum.GoogleConfigKey.html) for additional details.
 
 | Configuration Option                                                      | Environment Variable                     | Description                                                                       |
@@ -120,15 +124,18 @@ The following configuration options are supported for Google Cloud Storage objec
 | `google_service_account`, `service_account`, `google_service_account_path`, `service_account_path`| `GOOGLE_SERVICE_ACCOUNT`, `GOOGLE_SERVICE_ACCOUNT_PATH`| Path to the service account file.           |
 | `google_service_account_key`, `service_account_key`                       | `GOOGLE_SERVICE_ACCOUNT_KEY`             | The serialized service account key.                                               |
 | `google_application_credentials`                                          | `GOOGLE_APPLICATION_CREDENTIALS`         | Application credentials path.                                                     |
-| `google_skip_signature`, `skip_signature`                                 | `GOOGLE_SKIP_SIGNATURE`                  | Skip signing request.                                                             |
-    </TabItem>
+| `google_skip_signature`, `skip_signature`                                 | `GOOGLE_SKIP_SIGNATURE`                  | Skip signing request.                                                             | </TabItem>
 
-    <TabItem value="uc" label="Unity Catalog">
+```
+<TabItem value="uc" label="Unity Catalog">
+```
+
 Follow Databricks documentation to create and configure a service principal with external access to the target Delta table via the Unity catalog. This usually involves the following steps:
-* Enable external data access for the Metastore the Delta table belongs to.
-* Create a Databricks service principal.
-* Add the service principal to the relevant Databricks workspace.
-* [Grant the principal Unity catalog privileges](https://docs.databricks.com/aws/en/external-access/admin#grant-a-principal-unity-catalog-privileges).
+
+- Enable external data access for the Metastore the Delta table belongs to.
+- Create a Databricks service principal.
+- Add the service principal to the relevant Databricks workspace.
+- [Grant the principal Unity catalog privileges](https://docs.databricks.com/aws/en/external-access/admin#grant-a-principal-unity-catalog-privileges).
 
 To configure Delta Lake connector to use Unity catalog, specify table URI in the following format: `uc://<workspace>.<schema>.<table>`,
 along with the following configuration options
@@ -146,9 +153,7 @@ along with the following configuration options
 | `unity_object_id`, `databricks_object_id`                                 | `UNITY_OBJECT_ID`, `DATABRICKS_OBJECT_ID`| Object id for use with managed identity authentication.                           |
 | `unity_msi_resource_id`, `databricks_msi_resource_id`                     | `UNITY_MSI_RESOURCE_ID`, `DATABRICKS_MSI_RESOURCE_ID`| MSI resource id for use with managed identity authentication.         |
 | `unity_federated_token_file`, `databricks_federated_token_file`           | `UNITY_FEDERATED_TOKEN_FILE`, `DATABRICKS_FEDERATED_TOKEN_FILE`| File containing token for Azure AD workload identity federation.|
-| `unity_allow_http_url`, `databricks_allow_http_url`                       | `UNITY_ALLOW_HTTP_URL`, `DATABRICKS_ALLOW_HTTP_URL`| Allow http url (e.g. http://localhost:8080/api/2.1/...)                 |
-    </TabItem>
-</Tabs>
+| `unity_allow_http_url`, `databricks_allow_http_url`                       | `UNITY_ALLOW_HTTP_URL`, `DATABRICKS_ALLOW_HTTP_URL`| Allow http url (e.g. http://localhost:8080/api/2.1/...)                 | </TabItem> </Tabs>
 
 A typical connector config includes `unity_client_id`, `unity_client_secret`,  and `unity_host` options.
 You may need to configure additional object store-specific properties,
@@ -203,20 +208,19 @@ The following table lists supported Delta Lake data types and corresponding Feld
 | `STRUCT`                    | `ROW` or [user-defined type](/sql/types#user-defined-types)| structs can be encoded as either anonymous `ROW` types or as named user-defined structs |
 | `VARIANT`                   | `VARIANT`        |               |
 
-
 ## Transactions
 
 The Delta Lake connector can be configured to automatically initiate [transactions](/pipelines/transactions)
 when ingesting the table snapshot and following the transaction log.
 The `transaction_mode` property configures this feature:
 
-* `none` - the connector does not group inputs into transactions.
-* `snapshot` - ingest the initial snapshot of the table in one or several transactions.
-* `catchup` - all updates generated by the connector are grouped into transactions, both when reading the initial snapshot
+- `none` - the connector does not group inputs into transactions.
+- `snapshot` - ingest the initial snapshot of the table in one or several transactions.
+- `catchup` - all updates generated by the connector are grouped into transactions, both when reading the initial snapshot
   and when following the transaction log (in `follow`, `snapshot_and_follow`, or `cdc` mode). The connector
   batches multiple Delta table versions into a single Feldera transaction. See
   [below](#ingesting-the-delta-transaction-log-using-transactions).
-* `always` - all updates generated by the connector are grouped into transactions, both when reading the initial snapshot
+- `always` - all updates generated by the connector are grouped into transactions, both when reading the initial snapshot
   and when following the transaction log, with one Feldera transaction per Delta log entry.
   See [below](#ingesting-the-delta-transaction-log-using-transactions).
 
@@ -277,13 +281,14 @@ of any previously ingested row.  The ingestion is performed by partitioning the 
 into timestamp ranges of width `LATENESS` and ingesting ranges one by one in increasing timestamp order.
 
 Requirements:
-* The timestamp column must be of a supported type: integer, `DATE`, or `TIMESTAMP`.
-* The timestamp column must be declared with non-zero `LATENESS`.
-* `LATENESS` must be a valid constant expression in the [DataFusion
+
+- The timestamp column must be of a supported type: integer, `DATE`, or `TIMESTAMP`.
+- The timestamp column must be declared with non-zero `LATENESS`.
+- `LATENESS` must be a valid constant expression in the [DataFusion
   SQL dialect](https://datafusion.apache.org/). The reason for this is that Feldera
   uses the Apache Datafusion engine to query Delta Lake.  In practice, most
   valid Feldera SQL expressions are accepted by DataFusion.
-* For efficient ingest, the Delta table must be optimized for timestamp-based queries
+- For efficient ingest, the Delta table must be optimized for timestamp-based queries
   using partitioning, Z-ordering, or liquid clustering.
 
 Note that the `timestamp_column` property only controls the initial table snapshot.
@@ -340,9 +345,9 @@ If these lower-level retries are exhausted—or if the error cannot be recovered
 layer—the connector retries the entire operation (for example, re-reading a Delta log entry).
 This behavior is controlled by the `max_retries` setting:
 
-* By default, the connector performs unbounded retries.
-* Set `max_retries = N` to limit the number of attempts.
-* Set `max_retries = 0` to disable retries entirely.
+- By default, the connector performs unbounded retries.
+- Set `max_retries = N` to limit the number of attempts.
+- Set `max_retries = 0` to disable retries entirely.
 
 If the connector cannot recover after `N` attempts, it fails with a fatal error and stops
 ingesting inputs.
@@ -365,7 +370,7 @@ ingested table version. This guarantees that no data loss occurs due to object s
 
 Create a Delta Lake input connector to read a snapshot of a table from a public S3 bucket, using
 `unix_time` as the timestamp column.  The column stores event time in seconds since UNIX epoch
-and has lateness equal to 30 days (3600 seconds/hour * 24 hours/day * 30 days).
+and has lateness equal to 30 days (3600 seconds/hour \* 24 hours/day \* 30 days).
 Note the `aws_skip_signature` flag, required to read from the bucket without authentication,
 
 ```sql
