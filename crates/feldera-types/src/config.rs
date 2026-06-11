@@ -1180,8 +1180,8 @@ pub struct FtConfig {
 
     /// Interval between automatic checkpoints, in seconds.
     ///
-    /// The default is 60 seconds.  Values less than 1 or greater than 3600 will
-    /// be forced into that range.
+    /// The default is 120 seconds.  Values less than 1 or greater than 3600
+    /// will be forced into that range.
     #[serde(default = "default_checkpoint_interval_secs")]
     pub checkpoint_interval_secs: Option<u64>,
 }
@@ -1191,7 +1191,7 @@ fn default_model() -> Option<FtModel> {
 }
 
 pub fn default_checkpoint_interval_secs() -> Option<u64> {
-    Some(60)
+    Some(120)
 }
 
 impl Default for FtConfig {
@@ -1303,7 +1303,7 @@ mod test {
                 Wrapper {
                     config: FtConfig {
                         model: None,
-                        checkpoint_interval_secs: Some(60)
+                        checkpoint_interval_secs: Some(120)
                     }
                 }
             );
@@ -1318,12 +1318,12 @@ mod test {
 
         // `{}` for FtConfig, or `{...}` with `model` omitted, enables fault
         // tolerance.
-        for s in [r#"{"config": {}}"#, r#"{"checkpoint_interval_secs": 60}"#] {
+        for s in [r#"{"config": {}}"#, r#"{"checkpoint_interval_secs": 120}"#] {
             assert_eq!(
                 serde_json::from_str::<FtConfig>(s).unwrap(),
                 FtConfig {
                     model: Some(FtModel::default()),
-                    checkpoint_interval_secs: Some(60)
+                    checkpoint_interval_secs: Some(120)
                 }
             );
         }

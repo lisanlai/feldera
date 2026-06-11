@@ -39,6 +39,12 @@ pub enum CompletionStatus {
     /// The pipeline is still processing input updates associated with the token.
     #[serde(rename = "inprogress")]
     InProgress,
+
+    /// The input connector associated with the token encountered a fatal
+    /// error before reaching the input position that the token tracks, so
+    /// the token can never complete.
+    #[serde(rename = "failed")]
+    Failed,
 }
 
 impl CompletionStatus {
