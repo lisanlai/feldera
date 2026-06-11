@@ -38,19 +38,19 @@ pub struct Auth {
 }
 
 pub const fn default_connection_timeout_secs() -> u64 {
-    10
+    15
 }
 
 pub const fn default_request_timeout_secs() -> u64 {
-    10
+    20
 }
 
 pub const fn default_inactivity_timeout_secs() -> u64 {
-    60
+    90
 }
 
 pub const fn default_retry_interval_secs() -> u64 {
-    5
+    10
 }
 
 /// Options for connecting to a NATS server.

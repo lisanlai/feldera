@@ -263,7 +263,7 @@ pub enum KafkaLogLevel {
 /// On startup, the endpoint waits to join the consumer group.
 /// This constant defines the default wait timeout.
 pub const fn default_group_join_timeout_secs() -> u32 {
-    10
+    15
 }
 
 impl KafkaInputConfig {
