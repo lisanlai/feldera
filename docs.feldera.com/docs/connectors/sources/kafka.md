@@ -1,3 +1,5 @@
+
+
 # Kafka input connector
 
 Feldera can consume a stream of changes to a SQL table from Kafka with
@@ -16,7 +18,7 @@ tolerance](/pipelines/fault-tolerance).
 | `partitions`                   | integer list     |         | <p> The list of Kafka partitions to read from. </p> <p> Only the specified partitions will be consumed. If this field is not set, the connector will consume from all available partitions. </p><p> If `start_from` is set to `offsets` and this field is provided, the number of partitions must exactly match the number of offsets, and the order of partitions must correspond to the order of offsets. </p><p> If offsets are provided for all partitions, this field can be omitted. </p> |
 | `log_level`                    | string           |         | The log level for the Kafka client. |
 | `group_join_timeout_secs`      | seconds          | 10      | Maximum timeout (in seconds) for the endpoint to join the Kafka consumer group during initialization. |
-| `poller_threads`               | positive integer | 3       | Number of threads used to poll Kafka messages. Setting it to multiple threads can improve performance with small messages. Default is 3. |
+| `poller_threads`               | positive integer | 4       | Number of threads used to poll Kafka messages. Setting it to multiple threads can improve performance with small messages. Default is 4. |
 | `resume_earliest_if_data_expires` | boolean       | false   | See [Tolerating missing data on resume](#tolerating-missing-data-on-resume). |
 | `include_headers`              | boolean          | false   | Whether to include Kafka headers in connector metadata (see [Accessing Kafka metadata](#metadata)). |
 | `include_topic`                | boolean          | false   | Whether to include Kafka topic name in connector metadata (see [Accessing Kafka metadata](#metadata)). |
@@ -53,12 +55,14 @@ Format in this example is newline-delimited JSON (NDJSON).
 For example, there can be two messages containing three rows:
 
 Message 1:
+
 ```text
 {"insert": {"sid": 123, pid": 2, "sold_at": "2024-01-01 12:00:04", "price": 5.0}}
 {"insert": {"sid": 124, pid": 12, "sold_at": "2024-01-01 12:00:08", "price": 20.5}}
 ```
 
 Message 2:
+
 ```
 {"insert": {"sid": 125, pid": 8, "sold_at": "2024-01-01 12:01:02", "price": 1.10}}
 ```
@@ -233,7 +237,7 @@ The updated configuration would look like:
 ```
 
 > :warning: If both `ssl.certificate.pem` and `ssl.certificate.location` are set
-the latter will be overwritten.
+> the latter will be overwritten.
 
 ### Using Kafka as a Debezium transport
 
@@ -246,6 +250,7 @@ Debezium.  For information on how to setup Debezium integration for Feldera, see
 Example of reading data from AWS MSK with IAM SASL.
 
 :::important
+
 - AWS credentials must either be set as Environment Variables or present in `~/.aws/credentials`.
 - `sasl.mechanism` must be set to `OAUTHBEARER`.
 - `security.protocol` must be set to `SASL_SSL`.
@@ -389,9 +394,9 @@ added partitions, stop the pipeline with a checkpoint and then resume
 it.
 
 > If `partitions` is set to a list of partition numbers or
-`start_from` is set to a list of partition offsets, this is not
-possible.  Instead, force-stop the pipeline, clear its storage, change
-the configuration, and restart the pipeline from an empty state.
+> `start_from` is set to a list of partition offsets, this is not
+> possible.  Instead, force-stop the pipeline, clear its storage, change
+> the configuration, and restart the pipeline from an empty state.
 
 ## Synchronizing partitions
 
@@ -450,11 +455,11 @@ Pitfalls of this solution include:
 
 For more information, see:
 
-* [Tutorial section](/tutorials/basics/part3#step-2-configure-kafkaredpanda-connectors) which involves
+- [Tutorial section](/tutorials/basics/part3#step-2-configure-kafkaredpanda-connectors) which involves
   creating a Kafka input connector.
 
-* Data formats such as [JSON](/formats/json) and
+- Data formats such as [JSON](/formats/json) and
   [CSV](/formats/csv)
 
-* Overview of Kafka configuration options:
+- Overview of Kafka configuration options:
   [librdkafka options](https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md)
