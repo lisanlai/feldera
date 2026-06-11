@@ -15,6 +15,14 @@ pub struct TimeSeries {
     pub samples: Vec<SampleStatistics>,
 }
 
+impl TimeSeries {
+    /// Returns the most recent sample in the time series, or `None` if no
+    /// samples have been collected yet.
+    pub fn latest(&self) -> Option<&SampleStatistics> {
+        self.samples.last()
+    }
+}
+
 /// One sample of time-series data.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct SampleStatistics {

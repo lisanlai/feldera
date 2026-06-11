@@ -41,6 +41,14 @@ pub enum CompletionStatus {
     InProgress,
 }
 
+impl CompletionStatus {
+    /// Returns `true` if all inputs associated with the token have been
+    /// processed to completion.
+    pub fn is_complete(&self) -> bool {
+        matches!(self, CompletionStatus::Complete)
+    }
+}
+
 /// Response to a completion token status request.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CompletionStatusResponse {
