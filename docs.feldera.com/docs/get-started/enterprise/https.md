@@ -1,3 +1,47 @@
+This document describes how to configure the endpoints of Feldera components (API server, compiler,
+runner, pipelines) to serve HTTPS in the Enterprise edition.
+
+By default, all Feldera servers listen over plain HTTP. To enable HTTPS, you must configure TLS certificates
+as described below.
+
+For Feldera to support HTTPS with single-host pipelines, the
+administrator must configure Feldera with a [wildcard
+certificate](#wildcard-certificate-generation) and a private key for
+its main DNS domain, e.g. for `*.feldera.svc.cluster.local`.  The
+Feldera API server, compiler runner, pipeline runner, pipeline
+stateful sets, and other top-level components share this certificate
+and key.
+
+For Feldera to also support HTTPS with multihost pipelines, the
+administrator must additionally configure Feldera with a [private CA
+certificate chain](#private-ca-certificate-chain-generation) and
+private key.  This allows the Feldera pipeline runner to generate keys
+for multihost pipeline pods in their nested DNS domains,
+e.g. `<pipeline>-<ordinal>.<pipeline>.feldera.svc.cluster.local`,
+which a single wildcard certificate cannot cover.  The generated
+certificates are only used for connections between Feldera components,
+such as between the pipeline pods and the pipeline manager, not
+external software.
+
+:::note
+
+Feldera does not support mTLS authentication.  The API server supports
+[API authentication](authentication/index.mdx).
+
+:::
+
+This document does not apply to the connection to the Postgres database used by the control plane,
+which can be [configured separately](helm-guide.md).
+
+:::warning
+
+Before switching an existing Feldera installation to using HTTPS, it is required to stop
+all existing running pipelines because otherwise the still running pipelines will continue
+to serve their HTTP endpoint -- which the runner will no longer be able to communicate with
+as it expects HTTPS. Restart the pipelines after configuring HTTPS.
+
+:::
+
 # HTTPS
 
 This document describes how to configure the endpoints of Feldera components (API server, compiler,
@@ -198,7 +242,6 @@ section below describes one way to generate these files.
 
    If you did create the private CA for multihost pipeline support:
 
-
    - **Via file `values.yaml`:**
      ```
      httpsSecretRef: "feldera-https-config"
@@ -214,14 +257,17 @@ section below describes one way to generate these files.
      ```
 
 4. (Optional) Port forward:
+
    ```
    kubectl port-forward -n feldera svc/feldera-api-server 8080:8080
    ```
+
    ... and then open in the browser: https://localhost:8080
 
    Note that the certificate will need to be trusted to not encounter
    errors about an insecure connection (or self-signed certificates).
    For example, when using curl:
+
    ```
    curl --cacert tls.crt https://localhost:8080/v0/pipelines
    ```

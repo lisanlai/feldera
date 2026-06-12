@@ -1,3 +1,5 @@
+
+
 # Synchronous Processing with Completion Tokens
 
 Completion tokens enable synchronous processing on top of Feldera’s asynchronous pipelines, allowing
@@ -46,18 +48,25 @@ Completion tokens have several important properties:
 This enables efficient, overlapping execution: clients can push additional inputs while
 waiting for earlier inputs to be processed.
 
+### How completion tokens work
+
+Internally, a completion token captures the value of `total_completed_records` at the time it is issued.
+A token is considered satisfied once `total_completed_records` advances past the record count captured
+when the token was issued. This counter tracks the total number of input records that have been processed
+to completion by the DBSP engine and for which all outputs have been processed by all output connectors.
+
 ## Hot to generate a completion token
 
 There are two ways to generate a completion token, depending on the type of the input connector:
 
 1. The [HTTP input connector](/connectors/sources/http) returns a token
- in response to every [`/ingress`](/api/insert-data) request.
- This token tracks completion for the data ingested as part of this request.
+   in response to every [`/ingress`](/api/insert-data) request.
+   This token tracks completion for the data ingested as part of this request.
 
 2. For all other input connectors, use the
- [`/completion_token`](/api/get-completion-token)
- endpoint to generate a token. This token tracks all inputs ingested by the connector
- before the endpoint was invoked.
+   [`/completion_token`](/api/get-completion-token)
+   endpoint to generate a token. This token tracks all inputs ingested by the connector
+   before the endpoint was invoked.
 
 ## Checking completion status
 
@@ -95,58 +104,58 @@ CREATE TABLE price (
 
 ### Step 1. Push data via HTTP
 
-  ```shell
-  curl -s -X 'POST' http://127.0.0.1:8080/v0/pipelines/supply-chain/ingress/PRICE?format=json -d '
-  {"insert": {"part": 1, "vendor": 2, "price": 10000}}
-  {"insert": {"part": 2, "vendor": 1, "price": 15000}}
-  {"insert": {"part": 3, "vendor": 3, "price": 9000}}'| jq
-  ```
+```shell
+curl -s -X 'POST' http://127.0.0.1:8080/v0/pipelines/supply-chain/ingress/PRICE?format=json -d '
+{"insert": {"part": 1, "vendor": 2, "price": 10000}}
+{"insert": {"part": 2, "vendor": 1, "price": 15000}}
+{"insert": {"part": 3, "vendor": 3, "price": 9000}}'| jq
+```
 
-  Sample response (completion token):
+Sample response (completion token):
 
-  ```json
-  {
-    "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30="
-  }
-  ```
+```json
+{
+  "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30="
+}
+```
 
 ### Step 2. Generate a token for the URL input connector
 
-  Let us generate another completion token for the URL input connector attached to the table.
+Let us generate another completion token for the URL input connector attached to the table.
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/tables/PRICE/connectors/tutorial-price-s3/completion_token | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/tables/PRICE/connectors/tutorial-price-s3/completion_token | jq
+```
 
-  > Note that this endpoint requires the user to explicitly assign a name to the connector (`"name": "tutorial-price-s3"`)
-  in the SQL table declaration.
+> Note that this endpoint requires the user to explicitly assign a name to the connector (`"name": "tutorial-price-s3"`)
+> in the SQL table declaration.
 
-  This returns another completion token:
+This returns another completion token:
 
-  ```json
-  {
-    "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30="
-  }
-  ```
+```json
+{
+  "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30="
+}
+```
 
 ### Step 3. Check the status of both tokens
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30= | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30= | jq
+```
 
-  ```json
-  {
-    "status": "complete"
-  }
-  ```
+```json
+{
+  "status": "complete"
+}
+```
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30= | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30= | jq
+```
 
-  ```json
-  {
-    "status": "complete"
-  }
-  ```
+```json
+{
+  "status": "complete"
+}
+```

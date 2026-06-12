@@ -1,5 +1,3 @@
-# Avro Format
-
 :::note
 This page describes configuration options specific to the Avro data format.
 See [top-level connector documentation](/connectors/) for general information
@@ -32,11 +30,57 @@ We support several Avro-based formats:
    represents an update, and `"op": "delete"` representa a deletion. The message key can optionally store
    the primary key (see the `key_mode` property).
 
-* **Debezium** (input only) - used to synchronize a Feldera table with an external database using
+* **Debezium** - Debezium data change event format. Each message encodes an insert, update, or delete
+  as a Debezium-style envelope carrying `before` and `after` record images.
+  * **Debezium input**: Supports inserts, updates, and deletes. The operation type is derived from
+    the Debezium `op` field embedded in the message value. Used to synchronize a Feldera table with
+    an external database using [Debezium](https://debezium.io/). See [Debezium source connector
+    documentation](/connectors/sources/debezium) for more details.
+  * **Debezium output**: Not supported. Feldera does not emit Debezium-formatted output.
+
+* **Confluent JDBC** (output only) - used to send incremental changes computed by Feldera
+  to an external database using the [Confluent JDBC connector](https://docs.confluent.io/kafka-connectors/jdbc/current/sink-connector/).
+  See [Confluent JDBC sink documentation](/connectors/sinks/confluent-jdbc) for details.
+
+# Avro Format
+
+:::note
+This page describes configuration options specific to the Avro data format.
+See [top-level connector documentation](/connectors/) for general information
+about configuring input and output connectors.
+:::
+
+Feldera supports sending and receiving data in the Avro format. We currently only support
+the Avro format in conjunction with Kafka [source](/connectors/sources/kafka) and
+[sink](/connectors/sinks/kafka) transport connectors.
+Avro is a strongly-typed format that requires a shared **schema** between the sender and receiver for successful
+data encoding and decoding.
+
+Feldera supports the streaming variant of the Avro format, where message schemas are managed
+out-of-band by a **schema registry** service.  Instead of carrying the entire schema, Kafka messages
+include only schema identifiers:
+
+- **Sender**: Before sending the first message with a new schema, the sender registers the schema
+  in the schema registry.
+- **Receiver**: Upon receiving a message, the receiver retrieves the associated schema from the
+  registry based on the schema identifier before decoding the message.
+
+We support several Avro-based formats:
+
+- **Raw** - every message contains a single Avro-encoded record that represents a row in a SQL
+  table or view.
+  - **Raw input**: An input connector configured with the raw Avro format treats all
+    incoming messages as inserts.
+  - **Raw output**: An output connector configured with the raw Avro format includes an operation type
+    (`"op"`) as a header in each output Kafka message: `"op": "insert"` represents an insertion, `"op": "update"`
+    represents an update, and `"op": "delete"` representa a deletion. The message key can optionally store
+    the primary key (see the `key_mode` property).
+
+- **Debezium** (input only) - used to synchronize a Feldera table with an external database using
   [Debezium](https://debezium.io/).  See [Debezium source connector documentation](/connectors/sources/debezium)
   for more details.
 
-* **Confluent JDBC** (output only) - used to send incremental changes computed by Feldera
+- **Confluent JDBC** (output only) - used to send incremental changes computed by Feldera
   to an external database using the [Confluent JDBC connector](https://docs.confluent.io/kafka-connectors/jdbc/current/sink-connector/).
   See [Confluent JDBC sink documentation](/connectors/sinks/confluent-jdbc) for details.
 
@@ -63,19 +107,19 @@ The Avro schema consists of metadata specific to the format (e.g., raw or Debezi
 a table record schema.  The record schema must match the schema of the SQL table that the
 connector is attached to:
 
-* The Avro schema must be of type `record`.
+- The Avro schema must be of type `record`.
 
-* For every non-nullable column in the table, a field with the same name and a compatible type must be present in the Avro schema
+- For every non-nullable column in the table, a field with the same name and a compatible type must be present in the Avro schema
   Note that the Avro schema is allowed to contain fields that don't exist in the SQL table.  Such fields are ignored by the parser.
   Conversely, the SQL table can contain **nullable** columns that are not present in the schema.  Such columns will
   be set to `NULL` during deserialization.
 
 A SQL column and a field in the Avro schema are compatible if the following conditions are satisfied:
 
-* If the Avro field is nullable, the SQL column is also nullable (however, a non-nullable
+- If the Avro field is nullable, the SQL column is also nullable (however, a non-nullable
   field can be deserialized into either nullable or non-nullable column).
 
-* The SQL column type and Avro field type must match according to the following table:
+- The SQL column type and Avro field type must match according to the following table:
 
 | SQL                           | Avro           | Comment                                                             |
 |-------------------------------|----------------|---------------------------------------------------------------------|
@@ -86,7 +130,7 @@ A SQL column and a field in the Avro schema are compatible if the following cond
 | `DOUBLE`                      | `double`       |                                                                     |
 | `DECIMAL(precision,scale)`    | `decimal`      | Precision and scale of the Avro decimal type must precisely match the SQL type.  |
 | `CHAR`, `VARCHAR`             | `string`, `enum` | SQL string type can be deserialized from Avro strings, including strings whose logical type is set to `uuid`. Avro enums are also deserialized into SQL strings. |
-| `UUID`                        | `string`       | The Avro logical type can be _optionally_ set to `uuid`.            |
+| `UUID`                        | `string`       | The Avro logical type can be *optionally* set to `uuid`.            |
 | `BINARY`, `VARBINARY`         | `bytes`        |                                                                     |
 | `DATE`                        | `int`          |                                                                     |
 | `TIME`                        | `long` or `int`| logical type must be set to `time-millis` or `time-micros`          |
@@ -105,7 +149,7 @@ either `registry_urls` or `schema` properties must be specified.
 |-------------------------------|-----------------------------|--------|----------------------------------------------------------|
 | `update_format`               | `"raw"` or `"debezium"`|`"raw"` | Format used to encode data change events in this stream|
 | `schema`                      | string | | Avro schema used to encode all records in this stream, specified as a JSON-encoded string. When this property is set, the connector uses the provided schema instead of retrieving the schema from the schema registry. This setting is mutually exclusive with `registry_urls`. |
-| `skip_schema_id` | Boolean | `false` | `true` if serialized messages only contain raw data without the header carrying schema ID. See [Confluent documentation](<https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#wire-format>) for more details|
+| `skip_schema_id` | Boolean | `false` | `true` if serialized messages only contain raw data without the header carrying schema ID. See [Confluent documentation](https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#wire-format) for more details|
 | `registry_urls`               | array of strings|`[]`| List of schema registry URLs. When non-empty, the connector retrieves Avro message schemas from the registry.|
 | `registry_proxy`              | string          | | Proxy that will be used to access the schema registry. Requires `registry_urls` to be set.|
 | `registry_timeout_secs`       | string          | | Timeout in seconds used to connect to the registry. Requires `registry_urls` to be set.|
@@ -257,7 +301,6 @@ However, exactly one of `registry_urls` and `schema` properties must be specifie
 | `registry_authorization_token` | string          | | Token used to authenticate with the registry. Requires `registry_urls` to be set. This option is mutually exclusive with password-based authentication (see `registry_username` and `registry_password`).|
 | `cdc_field`                    | string          | | <p>Optional name of the field used for Change Data Capture (CDC) annotations.</p> <p>Use this setting with data sinks that expect operation type (insert, delete, or update) encoded as a column in the Avro record, such as the [Iceberg Sink Kafka Connector](/connectors/sinks/iceberg).</p> <p> When set (e.g., `"cdc_field": "op"`), the specified field will be added to each record to indicate the type of change: <ul><li>`"I"` for insert operations</li> <li>`"U"` for upserts</li> <li>`"D"` for deletions</li></ul> </p> <p>If not set, CDC metadata will not be included in the records. Only works with the `raw` update format.</p>|
 | `threads`                     | integer         | `4` | Number of parallel worker threads used to encode messages. **Only supported with [indexed outputs](/connectors/unique_keys).** |
-
 
 ### Examples
 
