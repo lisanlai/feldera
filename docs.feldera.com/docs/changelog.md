@@ -19,25 +19,35 @@ import TabItem from '@theme/TabItem';
         - Calling `/start` on a pipeline that already failed to compile will directly return an error instead of
           the runner later on setting the `deployment_error` during its check whether to proceed to provisioning.
 
+        - The default value of `max_queued_records` for connectors has been increased from 2,000,000 to 5,000,000.
+
         - New `max_queued_bytes` setting for input connectors.  The default is 1,000 times
-          `max_queued_records`, whether that is explicitly set or the default of 1,000,000.
+          `max_queued_records`, whether that is explicitly set or the default of 5,000,000.
           This is a change in behavior, since previously there was no byte limit.  We
           believe that the new behavior is generally an improvement that will prevent using
           excessive memory or even running out of memory but, to restore the previous
           behavior, specify a large number for `max_queued_bytes`.
 
+        - SQL type aliases: Added support for additional type aliases:
+          - `REAL`: now also accepts `FLOAT4` and `FLOAT32`
+          - `DOUBLE`: now also accepts `FLOAT8` and `FLOAT64`
+          - `DECIMAL`: now also accepts `DEC` and `NUMERIC`
+
         - Delta Lake output connector:
 
-        `log_retention_duration` and
-        `enable_expired_log_cleanup` config options to control transaction-log retention on newly created
-        tables.
+          - The default `checkpoint_interval` has been changed from 10 to 100.
+          - The default `log_retention_duration` has been changed from `"interval 30 days"` to `"interval 7 days"`.
 
-        Both are only applied at table creation ( i.e. new table or truncate mode ); against an existing table they
-        are ignored. Defaults are unchanged (Delta Lake's own: 30 days, cleanup enabled).
+          `log_retention_duration` and
+          `enable_expired_log_cleanup` config options to control transaction-log retention on newly created
+          tables.
 
-        The connector now logs a warning at startup when `checkpoint_interval`,
-        `log_retention_duration`, or `enable_expired_log_cleanup` in the connector config
-        differs from the existing table's metadata.
+          Both are only applied at table creation ( i.e. new table or truncate mode ); against an existing table they
+          are ignored.
+
+          The connector now logs a warning at startup when `checkpoint_interval`,
+          `log_retention_duration`, or `enable_expired_log_cleanup` in the connector config
+          differs from the existing table's metadata.
 
         - Large Delta Lake, Iceberg scans (e.g. Delta CDC `ORDER BY`) and ad-hoc queries now share a bounded memory pool
         and spill to disk under `<storage>/datafusion-tmp/`.

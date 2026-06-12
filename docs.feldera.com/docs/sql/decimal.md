@@ -1,6 +1,6 @@
 # Decimal Operations
 
-A synonym for the ``decimal`` type is ``numeric``.
+Synonyms for the ``decimal`` type are ``numeric`` and ``dec``.
 
 A decimal number is characterized by two magnitudes: the *precision*,
 which his the total number of decimal digits represented, and the
@@ -22,18 +22,43 @@ The type ``NUMERIC`` is the same as ``NUMERIC(MAX_PRECISION, 0)``.
 The maximum precision supported is 38 decimal digits.  The maximum
 scale supported is 38 decimal digits.
 
-## Operations available for the ``decimal`` type
+# Decimal Operations
 
-The legal operations are ``+`` (plus, unary and binary), ``-`` (minus,
-unary and binary), ``*`` (multiplication), ``/`` (division), ``%``
+A synonym for the `decimal` type is `numeric`.
+
+A decimal number is characterized by two magnitudes: the *precision*,
+which his the total number of decimal digits represented, and the
+*scale*, which is the count of digits in the fractional part, to the
+right of the decimal point.  For example, the number 3.1415 has a
+precision of 5 and a scale of 4.
+
+The type `NUMERIC(precision, scale)` specifies both precision and
+scale, both of which must be constants.
+
+The type `NUMERIC(precision)` is the same as `NUMERIC(precision, 0)`.
+
+The type `NUMERIC` is the same as `NUMERIC(MAX_PRECISION, 0)`.
+
+> \[!WARNING]
+> This means that casting to `DECIMAL` or `NUMERIC` will round the value to a decimal with no fractional part.
+> Example: `SELECT CAST('0.5' AS DECIMAL)` will return `1` as the scale is 0.
+
+The maximum precision supported is 38 decimal digits.  The maximum
+scale supported is 38 decimal digits.
+
+## Operations available for the `decimal` type
+
+The legal operations are `+` (plus, unary and binary), `-` (minus,
+unary and binary), `*` (multiplication), `/` (division), `%`
 (modulus).
 
 Modulus happens as follows:
-For: ``mod = x % y``
-- if ``x >= 0`` and ``y > 0`` then: ``x - (floor(x / y) * y)``
-- if ``x >= 0`` and ``y < 0`` then: ``x % abs(y)``
-- if ``x < 0`` and ``y > 0`` then: ``- abs(x) % y``
-- if ``x < 0`` and ``y < 0`` then: ``- abs(x) % abs(y)``
+For: `mod = x % y`
+
+- if `x >= 0` and `y > 0` then: `x - (floor(x / y) * y)`
+- if `x >= 0` and `y < 0` then: `x % abs(y)`
+- if `x < 0` and `y > 0` then: `- abs(x) % y`
+- if `x < 0` and `y < 0` then: `- abs(x) % abs(y)`
 
 Division or modulus by zero cause a runtime error.
 
@@ -44,7 +69,7 @@ parsing fails.
 
 Rounding is performed using [to nearest, ties away from zero](https://en.wikipedia.org/wiki/Rounding#Rounding_half_away_from_zero) strategy.
 
-Example while casting from ``DECIMAL(8, 4)`` to ``DECIMAL(6, 2)``:
+Example while casting from `DECIMAL(8, 4)` to `DECIMAL(6, 2)`:
 
 <table>
     <tr>
@@ -83,8 +108,8 @@ While casting to decimal types, if the current decimal number cannot be represen
 with the specified precision and scale, a run time error is thrown.
 
 Example:
-Valid casts such as: ``CAST('1234.1234' AS DECIMAL(6, 2))`` will return ``1234.12``.
-But invalid casts such as: ``CAST('1234.1234' AS DECIMAL(6, 3))`` will throw a run time error.
+Valid casts such as: `CAST('1234.1234' AS DECIMAL(6, 2))` will return `1234.12`.
+But invalid casts such as: `CAST('1234.1234' AS DECIMAL(6, 3))` will throw a run time error.
 
 ## Predefined functions on Decimal Values
 
@@ -135,4 +160,3 @@ But invalid casts such as: ``CAST('1234.1234' AS DECIMAL(6, 3))`` will throw a r
     <td>where <code>digits</code> is an integer value, which may be negative. Truncates the value to the specified number of <em>decimal</em> digits after the decimal point (result is a <code>DECIMAL</code> value).</td>
   </tr>
 </table>
-
