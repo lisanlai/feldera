@@ -25,6 +25,16 @@ pub enum AvroUpdateFormat {
     Raw,
 
     /// Debezium data change event format.
+    ///
+    /// Each message encodes an insert, update, or delete as a Debezium-style
+    /// envelope carrying `before` and `after` record images.
+    ///
+    /// ### Input Connectors
+    /// Supports inserts, updates, and deletes. The operation type is derived from
+    /// the Debezium `op` field embedded in the message value.
+    ///
+    /// ### Output Connectors
+    /// Not supported: Feldera does not emit Debezium-formatted output.
     #[serde(rename = "debezium")]
     Debezium,
 

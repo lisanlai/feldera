@@ -259,7 +259,8 @@ pub struct CommonConfig {
     pub unstable_features: Option<String>,
 
     /// Whether to enable TLS on the HTTP servers (API server, compiler, runner, pipelines).
-    /// Iff true, is it allowed and required to set `https_tls_cert_path` and `https_tls_key_path`.
+    /// If true, it is both allowed and required to set `https_tls_cert_path` and `https_tls_key_path`.
+    /// Defaults to `false`, in which case all servers listen over plain HTTP.
     #[arg(long, default_value_t = false, env = "FELDERA_ENABLE_HTTPS")]
     pub enable_https: bool,
 

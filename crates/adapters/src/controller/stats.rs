@@ -249,6 +249,10 @@ pub struct GlobalControllerMetrics {
     ///
     /// A record is processed to completion if it has been processed by the DBSP engine and
     /// all outputs derived from it have been processed by all output connectors.
+    ///
+    /// This counter underpins completion-token tracking: a `completion_token` is
+    /// considered satisfied once `total_completed_records` advances past the record
+    /// count captured when the token was issued.
     pub total_completed_records: AtomicU64,
 
     /// If the pipeline is stalled because one or more output connectors' output
