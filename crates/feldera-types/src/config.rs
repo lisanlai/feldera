@@ -44,7 +44,7 @@ pub use dev_tweaks::DevTweaks;
 const DEFAULT_MAX_PARALLEL_CONNECTOR_INIT: u64 = 10;
 
 /// Default value of `ConnectorConfig::max_queued_records`.
-pub const DEFAULT_MAX_QUEUED_RECORDS: u64 = 2_000_000;
+pub const DEFAULT_MAX_QUEUED_RECORDS: u64 = 5_000_000;
 
 pub const DEFAULT_MAX_WORKER_BATCH_SIZE: u64 = 10_000;
 
@@ -1628,7 +1628,7 @@ pub struct ConnectorConfig {
     /// the backpressure mechanism is triggered and the endpoint is paused, during
     /// which more data may be queued.
     ///
-    /// The default is 1 million.
+    /// The default is 5 million.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_queued_records: Option<u64>,
 

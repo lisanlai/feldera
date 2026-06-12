@@ -47,7 +47,7 @@ pub struct DeltaTableWriterConfig {
     ///
     /// 0 means no checkpoints are created.
     ///
-    /// Default: 10.
+    /// Default: 100.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checkpoint_interval: Option<u32>,
 
@@ -65,7 +65,7 @@ pub struct DeltaTableWriterConfig {
     /// is one of `nanosecond[s]`, `microsecond[s]`, `millisecond[s]`, `second[s]`, `minute[s]`,
     /// `hour[s]`, `day[s]`, or `week[s]`.  Examples: `"interval 30 days"`, `"interval 6 hours"`.
     ///
-    /// Default: `"interval 30 days"` (Delta Lake default).
+    /// Default: `"interval 7 days"`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub log_retention_duration: Option<String>,
 
