@@ -2,11 +2,11 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 fn default_max_concurrent_fetches() -> u32 {
-    8
+    16
 }
 
 fn default_max_retries() -> u32 {
-    5
+    8
 }
 
 /// Configuration for reading data from AWS S3.
@@ -43,13 +43,13 @@ pub struct S3InputConfig {
     /// Increasing this value can improve throughput by enabling greater concurrency.
     /// However, higher concurrency may lead to timeouts or increased memory usage due to in-memory buffering.
     ///
-    /// Recommended range: 1–10. Default: 8.
+    /// Recommended range: 1–16. Default: 16.
     #[serde(default = "default_max_concurrent_fetches")]
     pub max_concurrent_fetches: u32,
 
     /// Retry `max_retries` times with exponential backoff.
     /// If the object changes during a retry attempt, the remaining part of the object will not be processed.
-    /// Recommended range: 3-10. Default: 5.
+    /// Recommended range: 3-10. Default: 8.
     #[serde(default = "default_max_retries")]
     pub max_retries: u32,
 }

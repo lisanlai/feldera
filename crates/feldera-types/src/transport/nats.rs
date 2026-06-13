@@ -50,7 +50,7 @@ pub const fn default_inactivity_timeout_secs() -> u64 {
 }
 
 pub const fn default_retry_interval_secs() -> u64 {
-    5
+    30
 }
 
 /// Options for connecting to a NATS server.
