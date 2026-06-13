@@ -1,3 +1,5 @@
+
+
 # Synchronous Processing with Completion Tokens
 
 Completion tokens enable synchronous processing on top of Feldera’s asynchronous pipelines, allowing
@@ -34,14 +36,18 @@ Completion tokens can be used to implement synchronous processing as follows:
 
 Completion tokens have several important properties:
 
-* A completion token is tied to a specific input connector and only tracks inputs
- received from this connector.
+- A completion token is tied to a specific input connector and only tracks inputs
+  received from this connector.
 
-* The pipeline can continue process new inputs, including from the same input connector, while the client
- is waiting on a completion token.
+- The pipeline can continue process new inputs, including from the same input connector, while the client
+  is waiting on a completion token.
 
-* The client can generate any number of completion tokens for the same or different connectors to
- track the status of multiple inputs at the same time.
+- The client can generate any number of completion tokens for the same or different connectors to
+  track the status of multiple inputs at the same time.
+
+- **A token is bound to the pipeline incarnation that issued it.** After the pipeline is suspended and
+  resumed from a checkpoint or restarted, tokens from the previous incarnation are no longer valid and
+  the `/completion_status` endpoint reports them as gone (HTTP 410).
 
 This enables efficient, overlapping execution: clients can push additional inputs while
 waiting for earlier inputs to be processed.
@@ -51,21 +57,23 @@ waiting for earlier inputs to be processed.
 There are two ways to generate a completion token, depending on the type of the input connector:
 
 1. The [HTTP input connector](/connectors/sources/http) returns a token
- in response to every [`/ingress`](/api/insert-data) request.
- This token tracks completion for the data ingested as part of this request.
+   in response to every [`/ingress`](/api/insert-data) request.
+   This token tracks completion for the data ingested as part of this request.
 
 2. For all other input connectors, use the
- [`/completion_token`](/api/get-completion-token)
- endpoint to generate a token. This token tracks all inputs ingested by the connector
- before the endpoint was invoked.
+   [`/completion_token`](/api/get-completion-token)
+   endpoint to generate a token. This token tracks all inputs ingested by the connector
+   before the endpoint was invoked.
 
 ## Checking completion status
 
 To check the processing status of a token, call the
 [`/completion_status`](/api/check-completion-status)
-endpoint with the token.  The endpoint returns
-`"complete"` if the data associated with the token has been fully processed and all outputs derived from
-it have been written to all connected data sinks.  It returns `"inprogress"` otherwise.
+endpoint with the token.  The endpoint returns:
+
+- `200 OK` with `"status": "complete"` if the data associated with the token has been fully processed and all outputs derived from it have been written to all connected data sinks.
+- `202 Accepted` with `"status": "inprogress"` if processing is still in progress.
+- `410 Gone` if the token was issued by a previous incarnation of the pipeline (for example, after the pipeline was suspended and resumed from a checkpoint or restarted).
 
 ## Example
 
@@ -95,58 +103,58 @@ CREATE TABLE price (
 
 ### Step 1. Push data via HTTP
 
-  ```shell
-  curl -s -X 'POST' http://127.0.0.1:8080/v0/pipelines/supply-chain/ingress/PRICE?format=json -d '
-  {"insert": {"part": 1, "vendor": 2, "price": 10000}}
-  {"insert": {"part": 2, "vendor": 1, "price": 15000}}
-  {"insert": {"part": 3, "vendor": 3, "price": 9000}}'| jq
-  ```
+```shell
+curl -s -X 'POST' http://127.0.0.1:8080/v0/pipelines/supply-chain/ingress/PRICE?format=json -d '
+{"insert": {"part": 1, "vendor": 2, "price": 10000}}
+{"insert": {"part": 2, "vendor": 1, "price": 15000}}
+{"insert": {"part": 3, "vendor": 3, "price": 9000}}'| jq
+```
 
-  Sample response (completion token):
+Sample response (completion token):
 
-  ```json
-  {
-    "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30="
-  }
-  ```
+```json
+{
+  "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30="
+}
+```
 
 ### Step 2. Generate a token for the URL input connector
 
-  Let us generate another completion token for the URL input connector attached to the table.
+Let us generate another completion token for the URL input connector attached to the table.
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/tables/PRICE/connectors/tutorial-price-s3/completion_token | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/tables/PRICE/connectors/tutorial-price-s3/completion_token | jq
+```
 
-  > Note that this endpoint requires the user to explicitly assign a name to the connector (`"name": "tutorial-price-s3"`)
-  in the SQL table declaration.
+> Note that this endpoint requires the user to explicitly assign a name to the connector (`"name": "tutorial-price-s3"`)
+> in the SQL table declaration.
 
-  This returns another completion token:
+This returns another completion token:
 
-  ```json
-  {
-    "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30="
-  }
-  ```
+```json
+{
+  "token": "eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30="
+}
+```
 
 ### Step 3. Check the status of both tokens
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30= | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MywiYyI6M30= | jq
+```
 
-  ```json
-  {
-    "status": "complete"
-  }
-  ```
+```json
+{
+  "status": "complete"
+}
+```
 
-  ```shell
-  curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30= | jq
-  ```
+```shell
+curl -s -X 'GET' http://127.0.0.1:8080/v0/pipelines/supply-chain/completion_status?token=eyJ1IjoiMDE5NmIxMjAtNjIwMy03YjkwLWI2YmQtMTY4OTBkZjE1ZTI4IiwiZSI6MSwiYyI6M30= | jq
+```
 
-  ```json
-  {
-    "status": "complete"
-  }
-  ```
+```json
+{
+  "status": "complete"
+}
+```

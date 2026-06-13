@@ -1,3 +1,5 @@
+
+
 # Part 2: HTTP-based Input and Output
 
 In Part 1 of this tutorial we created our first Feldera pipeline.
@@ -45,6 +47,8 @@ You should see periodic heartbeat messages:
 }
 ...
 ```
+
+The `sequence_number` field is a monotonically increasing offset that starts at 0 and increments by one per chunk. This allows consumers to detect gaps in the sequence to recognize dropped chunks and implement reliable delivery.
 
 ## Step 3. Populate inputs
 
