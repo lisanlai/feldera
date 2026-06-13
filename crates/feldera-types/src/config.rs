@@ -45,14 +45,14 @@ pub use dev_tweaks::DevTweaks;
 const DEFAULT_MAX_PARALLEL_CONNECTOR_INIT: u64 = 10;
 
 /// Default maximum number of updates to be kept in the output buffer.
-const DEFAULT_MAX_OUTPUT_BUFFER_SIZE_RECORDS: usize = 10_000_000;
+const DEFAULT_MAX_OUTPUT_BUFFER_SIZE_RECORDS: usize = 20_000_000;
 
 /// Default value of `ConnectorConfig::max_queued_records`.
 pub const fn default_max_queued_records() -> u64 {
-    1_000_000
+    2_000_000
 }
 
-pub const DEFAULT_MAX_WORKER_BATCH_SIZE: u64 = 10_000;
+pub const DEFAULT_MAX_WORKER_BATCH_SIZE: u64 = 20_000;
 
 pub const DEFAULT_CLOCK_RESOLUTION_USECS: u64 = 1_000_000;
 
@@ -1605,7 +1605,7 @@ pub struct ConnectorConfig {
     /// size as the number of worker threads changes to maintain constant amount of
     /// work per worker per batch.
     ///
-    /// Defaults to 10,000 records per worker.
+    /// Defaults to 20,000 records per worker.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_worker_batch_size: Option<u64>,
 
@@ -1626,7 +1626,7 @@ pub struct ConnectorConfig {
     /// the backpressure mechanism is triggered and the endpoint is paused, during
     /// which more data may be queued.
     ///
-    /// The default is 1 million.
+    /// The default is 2 million.
     #[serde(default = "default_max_queued_records")]
     pub max_queued_records: u64,
 
@@ -1772,7 +1772,7 @@ pub struct OutputBufferConfig {
     /// total number of updates output by the pipeline. Updates to the
     /// same record can overwrite or cancel previous updates.
     ///
-    /// The default is 10,000,000.
+    /// The default is 20,000,000.
     ///
     /// NOTE: this configuration option requires the `enable_output_buffer` flag
     /// to be set.
