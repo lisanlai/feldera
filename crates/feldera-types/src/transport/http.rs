@@ -41,6 +41,11 @@ pub struct HttpInputConfig {
 /// depending on the data format used.
 #[derive(Deserialize, ToSchema)]
 pub struct Chunk {
+    /// Monotonically increasing offset of this chunk from the start of the stream.
+    ///
+    /// Numbering starts at 0 and increments by one per chunk, so consumers can
+    /// detect a gap in `sequence_number` to recognize dropped chunks and implement
+    /// reliable delivery.
     pub sequence_number: u64,
     /// `true` when this chunk is part of the initial snapshot delivered in
     /// `send_snapshot` mode; `false` for incremental delta updates.

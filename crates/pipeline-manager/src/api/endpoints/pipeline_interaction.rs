@@ -2019,6 +2019,11 @@ pub(crate) async fn completion_token(
 ///
 /// Check the status of a completion token returned by the `/ingress` or `/completion_token`
 /// endpoint.
+///
+/// Returns `200 OK` once all inputs associated with the token have been fully
+/// processed, `202 Accepted` while processing is still in progress, and `410 Gone`
+/// if the token was issued by a previous incarnation of the pipeline (for example,
+/// after the pipeline was suspended and resumed from a checkpoint).
 #[utoipa::path(
     context_path = "/v0",
     security(("JSON web token (JWT) or API key" = [])),
