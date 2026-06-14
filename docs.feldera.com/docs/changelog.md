@@ -27,8 +27,19 @@ import TabItem from '@theme/TabItem';
           when its usage reaches the disk limit. This is currently behind
           the unstable feature flag `rust_compiler_full_cleanup`.
 
-        - The default value of `max_output_buffer_size_records` is now 10,000,000
-          instead of unbounded.
+        - The default value of `max_output_buffer_size_records` is now 20,000,000
+          (increased from 10,000,000).
+
+        - The default value of `max_queued_records` is now 2,000,000
+          (increased from 1,000,000).
+
+        - The default value of `max_worker_batch_size` is now 20,000
+          (increased from 10,000).
+
+        - SQL type aliases are now accepted for floating-point and decimal types:
+          - `REAL` can also be written as `FLOAT4` or `FLOAT32`
+          - `DOUBLE` can also be written as `FLOAT8` or `FLOAT64`
+          - `DECIMAL` can also be written as `DEC`, `NUMERIC`, or `NUMBER`
 
         - Casts of strings to Boolean and floating point values will
         produce runtime errors instead of legal values for illegal string

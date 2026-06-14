@@ -29,9 +29,9 @@ This section breaks down pipelines' memory usage in more detail.
   The maximum queue length is controlled by the per-connector
   [`max_queued_records`] and [`max_queued_bytes`] properties.  These
   should be large enough to hide the latency of communication, but
-  small enough to avoid wasting memory.  The defaults of 1,000,000
-  records and 1,000,000,000 bytes limit the memory used by a connector
-  to 1 GB.
+  small enough to avoid wasting memory.  The defaults of 2,000,000
+  records and 2,000,000,000 bytes limit the memory used by a connector
+  to 2 GB.
 
   The web console shows the total number of records buffered across
   all connectors, which is also exposed as the
@@ -62,7 +62,7 @@ This section breaks down pipelines' memory usage in more detail.
   As for input connectors, [`max_queued_records`] limits the maximum
   number of records buffered.  This should be large enough to avoid
   stalling the pipeline.  The value applies to output records whether
-  in memory or on storage.  The default is 1,000,000.
+  in memory or on storage.  The default is 2,000,000.
 
   [`max_queued_bytes`] is not yet implemented for output connectors.
 
@@ -111,7 +111,7 @@ This section breaks down pipelines' memory usage in more detail.
   entirely.  Reducing the number of bits per key, or disabling Bloom
   filters, can reduce performance.
 
-- **Index batches in memory**.  The pipeline’s internal state is maintained as
+- **Index batches in memory**.  The pipeline's internal state is maintained as
   a set of indexes that are continuously updated as new data is processed. Updates
   are first accumulated in in-memory batches, which are then merged into larger
   batches in the background.
@@ -122,7 +122,7 @@ This section breaks down pipelines' memory usage in more detail.
   The default value is 10 MiB, which is typically a good balance. Lowering this value can
   reduce memory usage, but may negatively impact performance.
 
-  In addition, users can bound the pipeline’s memory usage via the
+  In addition, users can bound the pipeline's memory usage via the
   `max_rss_mb` option described above. As memory consumption approaches this
   limit, the pipeline increasingly flushes index batches to storage to stay within the
   configured bound.
@@ -183,7 +183,7 @@ or via the `resources` section in the pipeline config, e.g.:
 <a id="max_rss"></a>
 
 Memory not used for input/output buffers, Bloom filters, and caches is available for temporary storage
-of the pipeline’s state indexes and in-flight batches. For optimal performance, the system aims to utilize
+of the pipeline's state indexes and in-flight batches. For optimal performance, the system aims to utilize
 as much of this memory as possible without exceeding available capacity.
 
 This behavior is controlled via the `max_rss_mb` setting in the pipeline [Runtime configuration]. When set,
